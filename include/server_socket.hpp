@@ -6,31 +6,37 @@
 #define MAX_LISTEN 20
 
 template <typename T>
-class ServerSock: public Socket<T,typename std::enable_if<Convertible<T*, base_addr*>()>::type>
+class ServerSocket: public Socket<T,typename std::enable_if<Convertible<T*, base_addr*>()>::type>
 {
     public:
-        ServerSock(int listen_port);
-        ServerSock(int listen_port, int max_listen);
+        //ServerSock(int listen_port);
+        ServerSocket(unsigned int listen_port,string ipaddress="localhost", int max_listen = 10);
+        ServerSocket(string listen_port,string ipaddress="localhost", int max_listen = 10);
         Socket<T> acceptConn();
-
+        
+        // Destructor
+		~ServerSocket() {}
+		
     private:
-        T _address;
+        T _ipaddress;
         int _listen_port;
         int _max_listen; 
+
 };
 
-
+//if Port number is int
 template <typename T>
-ServerSock<T>::ServerSock(int listen_port):_listen_port(listen_port), _max_listen()
+ServerSocket<T>::ServerSocket(unsigned int listen_port, string ipaddress,int max_listen):_ipaddress(ipaddress),_listen_port(listen_port), _max_listen(max_listen)
 {
-    T addr("localhost");
+    T addr(_listen_port,_ipaddress);
     struct addrinfo *p = addr.getResult();
     for(p = addr.getResult(); p != NULL; p = p->ai_next) 
     {
         std::cout<<"Addr "<<p->ai_addrlen<<std::endl;
         if (bind(this->getSockfd(), p->ai_addr, p->ai_addrlen) == -1)
         {
-            std::cout<<"Bind error";
+        	close(this->getSocketfd());
+            throw SockError("Error in Bind");
             continue;
         }
     }
@@ -42,10 +48,51 @@ ServerSock<T>::ServerSock(int listen_port):_listen_port(listen_port), _max_liste
 
     if (listen(this->getSockfd(), _max_listen) < 0)
     {
-        std::cout<<"Listen error";
-        //throw exception    
+        throw SockError("Error in Listen."); 
     }
 }
 
-using server_sock_stream = ServerSock<inet_stream_addr>;
+
+//If port number given in String    
+template <typename T>
+ServerSocket<T>::ServerSocket(string listen_port,string ipaddress, int max_listen):_ipaddress(ipaddress),_listen_port(atoi((char*)listen_port)), _max_listen(max_listen)
+{
+    T addr(_listen_port,_ipaddress);
+    struct addrinfo *p = addr.getResult();
+    for(p = addr.getResult(); p != NULL; p = p->ai_next) 
+    {
+        std::cout<<"Addr "<<p->ai_addrlen<<std::endl;
+        if (bind(this->getSockfd(), p->ai_addr, p->ai_addrlen) == -1)
+        {
+        	close(this->getSocketfd());
+            throw SockError("Error in Bind");
+            continue;
+        }
+    }
+    
+    if (p == NULL)
+    {
+        //bind error, throw expection    
+    }
+
+    if (listen(this->getSockfd(), _max_listen) < 0)
+    {
+        throw SockError("Error in Listen");  
+    }
+}
+
+
+template <typename T>
+Socket<T> ServerSocket<T>::acceptConn()
+{
+  unsigned int newsockfd = accept(this->getSockfd());
+  if (newsockfd < 0) 
+         throw SockError("Error in Accept"); 
+  
+  Socket<T> acceptSocket(newsockfd);       
+  return acceptSocket;
+}
+
+
+using server_sock_stream = ServerSocket<inet_stream_addr>;
 #endif 
