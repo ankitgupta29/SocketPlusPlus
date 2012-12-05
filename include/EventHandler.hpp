@@ -40,7 +40,7 @@ class Reactor
 {
     public:
         bool registerHandler(Events ev, int fd, EvHandler *evH); 
-        bool deregisterHandler(Events ev, int fd, EvHandler *evH); 
+        bool deregisterHandler(Events ev, int fd); 
         bool registerTimeoutHandler(EvHandler *evH); 
         //run it in a different thread since it is blocking
         void Run();
@@ -73,14 +73,27 @@ class SocketHandler: public EvHandler
 
         int handleRead()
         {
-            string data = ((this->sock_fd).get())->readBytes();
-            std::cout<<data;   
-            ((this->sock_fd).get())->writeBytes("hi");
+            try
+            {
+                read_data = ((this->sock_fd).get())->readBytes();
+            }
+            catch(SockError& serr)
+            {
+                Socket<T>* sock = sock_fd.get();
+                Reactor *rec = Reactor::getInstance();
+                rec->deregisterHandler(EV_IN, sock->getSockfd());    
+            }
         }
 
-        int handleWrite(){};
+        int write()
+        {
+            Socket<T>* sock = sock_fd.get();
+            sock->writeBytes(write_data);    
+        };
+
     protected:
-        std::string data;
+        std::string read_data;
+        std::string write_data;
         unique_ptr<Socket<T>> sock_fd;
 };
 
