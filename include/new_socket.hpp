@@ -21,8 +21,8 @@ template<class T>
 class Socket<T, typename std::enable_if<Convertible<T*, base_addr*>()>::type> 
 {
     protected:
-        Socket(int fd): _sockfd(fd), _read_bytes(0), _write_bytes(0){}
     public:
+        Socket(int fd): _sockfd(fd), _read_bytes(0), _write_bytes(0){}
         Socket();
 
         /*
@@ -34,9 +34,16 @@ class Socket<T, typename std::enable_if<Convertible<T*, base_addr*>()>::type>
         }
 
         /*
+         * Copy constructor for sockets
+         */
+         Socket(const Socket<T>& other): _sockfd(other._sockfd), _read_bytes(other._read_bytes), _write_bytes(other._write_bytes)
+         {
+                
+         }
+        /*
          * read bytes from the socket
          */
-        string& readBytes();
+        string readBytes();
 
         int getSockfd() 
         {
@@ -79,8 +86,8 @@ Socket<T, typename std::enable_if<Convertible<T*, base_addr*>()>::type>::Socket(
     std::cout<<"Sock fd is "<<_sockfd;
 }
 
-    template<class T>
-string& Socket<T, typename std::enable_if<Convertible<T*, base_addr*>()>::type>::readBytes()
+template<class T>
+string Socket<T, typename std::enable_if<Convertible<T*, base_addr*>()>::type>::readBytes()
 {
     string data;
     char recBuffer[BUFFERLENGTH] = {0};
@@ -110,7 +117,7 @@ string& Socket<T, typename std::enable_if<Convertible<T*, base_addr*>()>::type>:
     return data;
 }
 
-    template<class T>
+template<class T>
 int Socket<T, typename std::enable_if<Convertible<T*, base_addr*>()>::type>::writeBytes(const string& data) 
 {
     const char* message = data.c_str(); // is this being lost ??
@@ -125,7 +132,7 @@ int Socket<T, typename std::enable_if<Convertible<T*, base_addr*>()>::type>::wri
 
 }
 
-    template<class T>
+template<class T>
 void Socket<T, typename std::enable_if<Convertible<T*, base_addr*>()>::type>::socketClose() 
 { 	
     close(_sockfd); 
@@ -139,7 +146,7 @@ void Socket<T, typename std::enable_if<Convertible<T*, base_addr*>()>::type>::so
    .. If flag = 0, blocking is enabled
    .. If flag = 1, non-blocking mode is enabled
  */
-    template<class T>
+template<class T>
 void Socket<T, typename std::enable_if<Convertible<T*, base_addr*>()>::type>::setNonBlocking(bool flag) 
 {
     int iResult;
@@ -203,7 +210,7 @@ void Socket<T, typename std::enable_if<Convertible<T*, base_addr*>()>::type>::se
    ..error.It is useful if your server has been shut down, and then
    ..restarted right away while sockets are still active on its port
  */
-    template<class T>
+template<class T>
 void Socket<T, typename std::enable_if<Convertible<T*, base_addr*>()>::type>::setReuseAddress(bool flag)
 {
     int value = flag ? 1 : 0;
@@ -214,7 +221,7 @@ void Socket<T, typename std::enable_if<Convertible<T*, base_addr*>()>::type>::se
 
 }
 
-    template<class T>
+template<class T>
 void Socket<T, typename std::enable_if<Convertible<T*, base_addr*>()>::type>::setBroadcast(bool flag)
 {
     int value = flag ? 1 : 0;

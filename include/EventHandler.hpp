@@ -11,6 +11,7 @@
 #include<memory>
 
 #include "new_socket.hpp"
+#include "base_address.hpp"
 
 enum Events {
 	EV_IN,
@@ -28,11 +29,11 @@ class EvHandler
 		{
 		}
 
-		virtual int handleRead()=0;
-		virtual int handleWrite()=0;
-		virtual int handleTimeout();
+		virtual int handleRead(){};
+		virtual int handleWrite(){};
+		virtual int handleTimeout(){};
 		
-		~EvHandler();
+		~EvHandler(){};
 };
 
 class Reactor 
@@ -50,7 +51,7 @@ class Reactor
         std::map<int, EvHandler*> fdReadMap;
         std::map<int, EvHandler*> fdWriteMap;
         EvHandler *fdReadArr[MAX_FD];    
-        EvHandler *fdWriteArr[MAX_FD];    
+        EvHandler *fdWriteArr[MAX_FD];
         fd_set masterReadSet, masterWriteSet;
         int maxfd;
         struct timeval timeout;
@@ -62,19 +63,25 @@ template <typename T>
 class SocketHandler: public EvHandler 
 {
     public:
-        SocketHandler(Socket<T> sock): sock_fd(sock)
+        SocketHandler(unique_ptr<Socket<T>> sock)
         {
+            sock_fd = std::move(sock);
             Reactor *rec = Reactor::getInstance();
-            rec->registerHandler(EV_IN, sock_fd.getSockfd(), this);
-            rec->registerHandler(EV_OUT, sock_fd.getSockfd(), this);    
+            rec->registerHandler(EV_IN, (sock_fd.get())->getSockfd(), this);
+            //rec->registerHandler(EV_OUT, (sock_fd.get())->getSockfd(), this);    
         };
 
-        int handleRead(){};
+        int handleRead()
+        {
+            string data = ((this->sock_fd).get())->readBytes();
+            std::cout<<data;   
+            ((this->sock_fd).get())->writeBytes("hi");
+        }
+
         int handleWrite(){};
-    private:
+    protected:
         std::string data;
-        Socket<T> sock_fd;
+        unique_ptr<Socket<T>> sock_fd;
 };
 
-Reactor* Reactor::ins = NULL;
 #endif

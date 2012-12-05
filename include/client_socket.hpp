@@ -9,16 +9,16 @@ class ClientSocket: public Socket<T,typename std::enable_if<Convertible<T*, base
     public:
         ClientSocket(unsigned int server_port = 80,string ipaddress="localhost")
         {
-        buildClientSocket();
+            buildClientSocket();
         }
         ClientSocket(string server_port = "http",string ipaddress="localhost")
         {
-        buildClientSocket();
+            buildClientSocket();
         }
-       
+
         // Destructor
-		~ClientSocket() {}
-		
+        ~ClientSocket() {}
+
     private:
         T _ipaddress;
         int _server_port;

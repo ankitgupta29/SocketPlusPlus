@@ -11,7 +11,7 @@ void inet_stream_addr::buildAddress()
 		specs.ai_flags 		= AI_PASSIVE;	// self ip
 
 		// get address
-		status = getaddrinfo( ( _address == "localhost" )? NULL : _address.c_str(), "8080", &specs, &_result );
+		status = getaddrinfo( ( _address == "localhost" )? NULL : _address.c_str(), _port.c_str(), &specs, &_result );
         if (status != 0)
         {
     		    cerr << "\nCould not get address information. Error:" << gai_strerror(status);

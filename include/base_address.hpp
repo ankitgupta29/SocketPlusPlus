@@ -30,7 +30,7 @@ class inet_stream_addr: public base_addr
         const static int _type = AF_INET;
         const static int  _domain = SOCK_STREAM;
         
-        inet_stream_addr(string address = "localhost", int port = 8080):base_addr(inet_stream_addr::_type), _port(port), _address(address)
+        inet_stream_addr(string port = "80", string address = "localhost"):base_addr(inet_stream_addr::_type), _port(port), _address(address)
         {
             buildAddress();
         }
@@ -42,7 +42,7 @@ class inet_stream_addr: public base_addr
     private:
         addrinfo* _result;
         string _address; 
-        int _port;
+        string _port;
 };
 
 #endif

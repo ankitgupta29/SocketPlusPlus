@@ -81,7 +81,8 @@ void Reactor::Run()
     {
         memcpy(&workingReadSet, &masterReadSet, sizeof(fd_set));
         memcpy(&workingWriteSet, &masterWriteSet, sizeof(fd_set));
-        rc = select(maxfd + 1, &workingReadSet, &workingWriteSet, NULL, &timeout);
+
+        rc = select(maxfd + 1, &workingReadSet, NULL, NULL, NULL);
 
         if (rc < 0)
         {
@@ -101,15 +102,18 @@ void Reactor::Run()
         {
             if (FD_ISSET(i, &workingReadSet))
             {
-                fdReadArr[i]->handleRead();
+                fdReadMap[i]->handleRead();
                 totalfds--;
             } 
 
             if (FD_ISSET(i, &workingWriteSet)) 
             {
-                fdReadArr[i]->handleWrite();
+                fdReadMap[i]->handleWrite();
                 totalfds--;
             }
         }
     } while(1);
 }
+
+Reactor* Reactor::ins = NULL;
+
