@@ -32,12 +32,12 @@ class inet_stream_addr: public base_addr
         
         inet_stream_addr(string port = "80", string address = "localhost"):base_addr(inet_stream_addr::_type), _port(port), _address(address)
         {
-            buildAddress();
+            build_address();
         }
 
-        addrinfo* getResult() {return _result;}
+        addrinfo* get_result() {return _result;}
         
-        void buildAddress();
+        void build_address();
 
     private:
         addrinfo* _result;

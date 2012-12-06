@@ -2,21 +2,21 @@
 #define __SERVER_SOCKET_HPP__
 
 #include<memory>
-#include "new_socket.hpp"
+#include "socket.hpp"
 
 #define MAX_LISTEN 20
 
 template <typename T>
-class ServerSocket: public Socket<T,typename std::enable_if<Convertible<T*, base_addr*>()>::type>
+class server_socket: public Socket<T,typename std::enable_if<Convertible<T*, base_addr*>()>::type>
 {
     public:
         //ServerSock(int listen_port);
-        ServerSocket(unsigned int listen_port,string ipaddress="localhost", int max_listen = 10);
-        ServerSocket(string listen_port,string ipaddress="localhost", int max_listen = 10);
-        unique_ptr<Socket<T>> acceptConn(unique_ptr<Socket<T>> newSock);
+        server_socket(unsigned int listen_port,string ipaddress="localhost", int max_listen = 10);
+        server_socket(string listen_port,string ipaddress="localhost", int max_listen = 10);
+        unique_ptr<Socket<T>> accept_conn(unique_ptr<Socket<T>> newSock);
         
         // Destructor
-		~ServerSocket() {}
+		~server_socket() {}
 		
     private:
         string _ipaddress;
@@ -26,17 +26,17 @@ class ServerSocket: public Socket<T,typename std::enable_if<Convertible<T*, base
 };
 //if Port number is int
 template <typename T>
-ServerSocket<T>::ServerSocket(unsigned int listen_port, string ipaddress,int max_listen):_ipaddress(ipaddress),_listen_port(listen_port), _max_listen(max_listen)
+server_socket<T>::server_socket(unsigned int listen_port, string ipaddress,int max_listen):_ipaddress(ipaddress),_listen_port(listen_port), _max_listen(max_listen)
 {
     
     T addr(std::to_string(_listen_port),_ipaddress);
-    struct addrinfo *p = addr.getResult();
-    for(p = addr.getResult(); p != NULL; p = p->ai_next) 
+    struct addrinfo *p = addr.get_result();
+    for(p = addr.get_result(); p != NULL; p = p->ai_next) 
     {
-        if (bind(this->getSockfd(), p->ai_addr, p->ai_addrlen) == -1)
+        if (bind(this->get_sockfd(), p->ai_addr, p->ai_addrlen) == -1)
         {
-        	close(this->getSockfd());
-            throw SockError("Error in Bind");
+        	close(this->get_sockfd());
+            throw sock_error("Error in Bind");
             continue;
         }
         else
@@ -51,27 +51,27 @@ ServerSocket<T>::ServerSocket(unsigned int listen_port, string ipaddress,int max
         return;
     }
 
-    if (listen(this->getSockfd(), _max_listen) < 0)
+    if (listen(this->get_sockfd(), _max_listen) < 0)
     {
-        throw SockError("Error in Listen."); 
+        throw sock_error("Error in Listen."); 
     }
 }
 
 
 //If port number given in String    
 template <typename T>
-ServerSocket<T>::ServerSocket(string listen_port,string ipaddress, int max_listen):_ipaddress(ipaddress),_listen_port(stoi(listen_port)), _max_listen(max_listen)
+server_socket<T>::server_socket(string listen_port,string ipaddress, int max_listen):_ipaddress(ipaddress),_listen_port(stoi(listen_port)), _max_listen(max_listen)
 {
     T addr(listen_port,_ipaddress);
-    struct addrinfo *p = addr.getResult();
-    std::cout<<"Sock fd is "<<this->getSockfd()<<std::endl;
-    for(p = addr.getResult(); p != NULL; p = p->ai_next) 
+    struct addrinfo *p = addr.get_result();
+    std::cout<<"Sock fd is "<<this->get_sockfd()<<std::endl;
+    for(p = addr.get_result(); p != NULL; p = p->ai_next) 
     {
         std::cout<<"Addr "<<p->ai_addrlen<<std::endl;
-        if (bind(this->getSockfd(), p->ai_addr, p->ai_addrlen) == -1)
+        if (bind(this->get_sockfd(), p->ai_addr, p->ai_addrlen) == -1)
         {
-        	close(this->getSockfd());
-            throw SockError("Error in Bind");
+        	close(this->get_sockfd());
+            throw sock_error("Error in Bind");
             continue;
         }
         else
@@ -87,9 +87,9 @@ ServerSocket<T>::ServerSocket(string listen_port,string ipaddress, int max_liste
         return;
     }
 
-    if (listen(this->getSockfd(), _max_listen) < 0)
+    if (listen(this->get_sockfd(), _max_listen) < 0)
     {
-        throw SockError("Error in Listen");  
+        throw sock_error("Error in Listen");  
     }
     else
     {
@@ -99,18 +99,18 @@ ServerSocket<T>::ServerSocket(string listen_port,string ipaddress, int max_liste
 
 
 template <typename T>
-unique_ptr<Socket<T>> ServerSocket<T>::acceptConn(unique_ptr<Socket<T>> newSock)
+unique_ptr<Socket<T>> server_socket<T>::accept_conn(unique_ptr<Socket<T>> newSock)
 {
   struct sockaddr_in cli_addr;
   socklen_t clilen = sizeof(cli_addr);
-  unsigned int newsockfd = accept(this->getSockfd(), (struct sockaddr *) &cli_addr, &clilen);
+  unsigned int newsockfd = accept(this->get_sockfd(), (struct sockaddr *) &cli_addr, &clilen);
   if (newsockfd < 0) 
-         throw SockError("Error in Accept"); 
+         throw sock_error("Error in Accept"); 
   
   newSock.reset(new Socket<T>(newsockfd));
   return newSock; 
 }
 
 
-using server_sock_stream = ServerSocket<inet_stream_addr>;
+using server_sock_stream = server_socket<inet_stream_addr>;
 #endif 

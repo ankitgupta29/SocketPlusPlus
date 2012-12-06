@@ -22,7 +22,7 @@ class Socket<T, typename std::enable_if<Convertible<T*, base_addr*>()>::type>
 {
     protected:
     public:
-        Socket(int fd): _sockfd(fd), _read_bytes(0), _write_bytes(0){}
+        Socket(int fd): _sockfd(fd), _read_bytes(0), _write_bytes(0) { }
         Socket();
 
         /*
@@ -43,33 +43,47 @@ class Socket<T, typename std::enable_if<Convertible<T*, base_addr*>()>::type>
         /*
          * read bytes from the socket
          */
-        string readBytes();
+        string read_bytes();
 
-        int getSockfd() 
+        int get_sockfd() 
         {
             return _sockfd;
         }
         /*
          * write bytes to the socket
          */
-        int writeBytes(const string& data);
+        int write_bytes(const string& data);
 
         /*
          * Set socket to non-blocking mode
+         * if flag is true
          */
-        void setNonBlocking(bool flag);
+        void set_non_blocking(bool flag);
+        /*
+         * Set socket to Keepalive
+         * if flag is true 
+         */
+        void set_keep_alive(bool flag);
+        /*
+         * Set socket to broadcast mode
+         * if flag is true
+         */
+        void set_broadcast(bool flag);
+        /*
+         * Set socket to No Delaymode
+         * if flag is true
+         */
+        void set_no_delay(bool flag);
+        /*
+         * Set socket to reuseaddress
+         * if flag is true
+         */
+        void set_reuse_address(bool flag);
 
-        void setKeepAlive(bool flag);
-
-        void setBroadcast(bool flag);
-
-        void setNoDelay(bool flag);
-
-        void setReuseAddress(bool flag);
-
-        void getKeepAlive();
-
-        void socketClose();
+        /*
+         * Close the Socket
+         */
+        void socket_close();
 
     private:
         int _sockfd;
@@ -87,7 +101,7 @@ Socket<T, typename std::enable_if<Convertible<T*, base_addr*>()>::type>::Socket(
 }
 
 template<class T>
-string Socket<T, typename std::enable_if<Convertible<T*, base_addr*>()>::type>::readBytes()
+string Socket<T, typename std::enable_if<Convertible<T*, base_addr*>()>::type>::read_bytes()
 {
     string data;
     char recBuffer[BUFFERLENGTH] = {0};
@@ -96,19 +110,19 @@ string Socket<T, typename std::enable_if<Convertible<T*, base_addr*>()>::type>::
     int flags = 0;
     if ( ioctl (this->_sockfd,FIONREAD,&bytesAv) < 0 )
     {
-        throw SockError("Error in Reading from Socket.");		
+        throw sock_error("Error in Reading from Socket.");		
     }
     if ( bytesAv < 0 )
     {
         // No Data Available
-        throw SockError("Error In Reading");	
+        throw sock_error("Error In Reading");	
     }
 
     if ( bytesAv == 0)
     {
         // No Data Available
         //sockState = socket_state::TIME_WAIT;
-        throw SockError("No Data available for read");	
+        throw sock_error("No Data available for read");	
     }
 
     bytesRead = recv(this->_sockfd,recBuffer,BUFFERLENGTH,flags);
@@ -118,7 +132,7 @@ string Socket<T, typename std::enable_if<Convertible<T*, base_addr*>()>::type>::
 }
 
 template<class T>
-int Socket<T, typename std::enable_if<Convertible<T*, base_addr*>()>::type>::writeBytes(const string& data) 
+int Socket<T, typename std::enable_if<Convertible<T*, base_addr*>()>::type>::write_bytes(const string& data) 
 {
     const char* message = data.c_str(); // is this being lost ??
     int sent = 0, length = data.length();
@@ -127,13 +141,13 @@ int Socket<T, typename std::enable_if<Convertible<T*, base_addr*>()>::type>::wri
     {
         sent = send(_sockfd, message + length - i, i, 0);
         if( sent < 1 )
-            throw SockError("Message could not be sent.");
+            throw sock_error("Message could not be sent.");
     }
 
 }
 
 template<class T>
-void Socket<T, typename std::enable_if<Convertible<T*, base_addr*>()>::type>::socketClose() 
+void Socket<T, typename std::enable_if<Convertible<T*, base_addr*>()>::type>::socket_close() 
 { 	
     close(_sockfd); 
 }
@@ -147,40 +161,27 @@ void Socket<T, typename std::enable_if<Convertible<T*, base_addr*>()>::type>::so
    .. If flag = 1, non-blocking mode is enabled
  */
 template<class T>
-void Socket<T, typename std::enable_if<Convertible<T*, base_addr*>()>::type>::setNonBlocking(bool flag) 
+void Socket<T, typename std::enable_if<Convertible<T*, base_addr*>()>::type>::set_non_blocking(bool flag) 
 {
     int iResult;
     iResult = ioctl(_sockfd, FIONBIO, &flag);
     if (iResult == -1)
     {
-        throw SockError("ioctl failed with error in setting socket to non-blocking");
+        throw sock_error("ioctl failed with error in setting socket to non-blocking");
     }			
-}
-
-
-//Returns the value of the SO_KEEPALIVE socket option. 
-template<class T>
-void Socket<T, typename std::enable_if<Convertible<T*, base_addr*>()>::type>::getKeepAlive()  {
-    int value = 0;
-    int rc;
-    rc = setsockopt(this->_sockfd, SOL_SOCKET,SO_KEEPALIVE, reinterpret_cast<const char*>(value),sizeof(value));
-    if (rc == -1) 
-    {
-        throw SockError("Error in setting Socket Options");
-    }    
 }
 
 
 //The SO_KEEPALIVE socket option is designed to allow an application 
 //to enable keep-alive packets for a socket connection
 template<class T>
-void Socket<T, typename std::enable_if<Convertible<T*, base_addr*>()>::type>::setKeepAlive(bool flag)  {	
+void Socket<T, typename std::enable_if<Convertible<T*, base_addr*>()>::type>::set_keep_alive(bool flag)  {	
     int value = flag ? 1 : 0;
     int rc;
     rc = setsockopt(this->_sockfd, SOL_SOCKET,SO_KEEPALIVE, reinterpret_cast<const char*>(value),sizeof(value));
     if (rc == -1) 
     {
-        throw SockError("Error in setting Socket Options");
+        throw sock_error("Error in setting Socket Options");
     }
 }
 
@@ -192,14 +193,14 @@ void Socket<T, typename std::enable_if<Convertible<T*, base_addr*>()>::type>::se
    ..mouse movements)
  */
 template<class T>
-void Socket<T, typename std::enable_if<Convertible<T*, base_addr*>()>::type>::setNoDelay(bool flag)  {
+void Socket<T, typename std::enable_if<Convertible<T*, base_addr*>()>::type>::set_no_delay(bool flag)  {
     //Returns the value of the TCP_NODELAY socket option.
     int value = flag ? 1 : 0;
     int rc;
     rc = setsockopt(this->_sockfd, IPPROTO_TCP,TCP_NODELAY,reinterpret_cast<const char*>(value),sizeof(value));
     if (rc == -1) 
     {
-        throw SockError("Error in setting Socket Options");
+        throw sock_error("Error in setting Socket Options");
     }
 }
 
@@ -211,18 +212,18 @@ void Socket<T, typename std::enable_if<Convertible<T*, base_addr*>()>::type>::se
    ..restarted right away while sockets are still active on its port
  */
 template<class T>
-void Socket<T, typename std::enable_if<Convertible<T*, base_addr*>()>::type>::setReuseAddress(bool flag)
+void Socket<T, typename std::enable_if<Convertible<T*, base_addr*>()>::type>::set_reuse_address(bool flag)
 {
     int value = flag ? 1 : 0;
     int rc;
     rc = setsockopt(this->_sockfd, SOL_SOCKET,SO_REUSEADDR,reinterpret_cast<const char*>(value),sizeof(value));
     if (rc == -1) 
-        throw SockError("Error in setting Socket Options");
+        throw sock_error("Error in setting Socket Options");
 
 }
 
 template<class T>
-void Socket<T, typename std::enable_if<Convertible<T*, base_addr*>()>::type>::setBroadcast(bool flag)
+void Socket<T, typename std::enable_if<Convertible<T*, base_addr*>()>::type>::set_broadcast(bool flag)
 {
     int value = flag ? 1 : 0;
     int rc;
@@ -230,7 +231,7 @@ void Socket<T, typename std::enable_if<Convertible<T*, base_addr*>()>::type>::se
     rc = setsockopt(this->_sockfd, SOL_SOCKET,SO_BROADCAST,reinterpret_cast<const char*>(value),sizeof(value));
     if (rc == -1) 
     {
-        throw SockError("Error in setting Socket Options");
+        throw sock_error("Error in setting Socket Options");
     }
 }
 

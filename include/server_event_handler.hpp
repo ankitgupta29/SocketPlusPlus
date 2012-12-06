@@ -4,32 +4,32 @@
  */
 
 #include <memory>
-#include "EventHandler.hpp"
+#include "event_handler.hpp"
 #include "server_socket.hpp"
 
 template <typename T, template <typename> class H>
-class ServerSocketHandler: public EvHandler
+class server_socket_handler: public ev_handler
 {
     public:
-      ServerSocketHandler(unique_ptr<ServerSocket<T>> sock)
+      server_socket_handler(unique_ptr<server_socket<T>> sock)
       {
           sock_fd = std::move(sock);
-          Reactor *rec = Reactor::getInstance();
-          rec->registerHandler(EV_IN, (sock_fd.get())->getSockfd(), this);    
+          Reactor *rec = Reactor::get_instance();
+          rec->register_handler(EV_IN, (sock_fd.get())->get_sockfd(), this);    
       }
-      int handleRead();      
+      int handle_read();      
     
     private:
-        unique_ptr<ServerSocket<T>> sock_fd;
+        unique_ptr<server_socket<T>> sock_fd;
         vector<unique_ptr<H<T>>> mapClient;
 }; 
 
 template <typename T, template <typename> class H>
-int ServerSocketHandler<T, H>::handleRead()
+int server_socket_handler<T, H>::handle_read()
 {
     std::cout<<"Got a new connection"<<std::endl;
     std::unique_ptr<Socket<T>> newSock;
-    newSock = (sock_fd.get())->acceptConn(std::move(newSock));
+    newSock = (sock_fd.get())->accept_conn(std::move(newSock));
     unique_ptr<H<T>> sockHd(new H<T>(std::move(newSock)));
     mapClient.push_back(std::move(sockHd));
 }

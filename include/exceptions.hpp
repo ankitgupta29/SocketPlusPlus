@@ -1,6 +1,6 @@
 
 #ifndef __EXCEPTIONS_HPP__
 #define __EXCEPTIONS_HPP__
-#include "sockerror.hpp"
-#include "addrerror.hpp"
+#include "sock_error.hpp"
+#include "addr_error.hpp"
 #endif

@@ -1,15 +1,15 @@
 #include "include.hpp"
 
-class SockError : public exception {
+class sock_error : public exception {
 	string msg;
 
 public:
-	SockError(const string& _msg) throw()
+	sock_error(const string& _msg) throw()
 	: msg(_msg){
 		msg.append(": ");
 		msg.append(strerror(errno));
 	}
 
-  ~SockError() throw() {};
+  ~sock_error() throw() {};
 };
 

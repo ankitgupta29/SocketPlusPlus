@@ -1,47 +1,47 @@
 #ifndef __CLIENT_SOCKET_HPP__
 #define __CLIENT_SOCKET_HPP__
 
-#include "new_socket.hpp"
+#include "socket.hpp"
 
 template <typename T>
-class ClientSocket: public Socket<T,typename std::enable_if<Convertible<T*, base_addr*>()>::type>
+class client_socket: public Socket<T,typename std::enable_if<Convertible<T*, base_addr*>()>::type>
 {
     public:
-        ClientSocket(unsigned int server_port = 80,string ipaddress="localhost")
+        client_socket(unsigned int server_port = 80,string ipaddress="localhost")
         {
-            buildClientSocket();
+            build_client_socket();
         }
-        ClientSocket(string server_port = "http",string ipaddress="localhost")
+        client_socket(string server_port = "http",string ipaddress="localhost")
         {
-            buildClientSocket();
+            build_client_socket();
         }
 
         // Destructor
-        ~ClientSocket() {}
+        ~client_socket() {}
 
     private:
         T _ipaddress;
         int _server_port;
-        void buildClientSocket();
+        void build_client_socket();
 
 };
 
 template <typename T>
-void ClientSocket<T>::buildClientSocket() 
+void client_socket<T>::build_client_socket() 
 { 	
 	addrinfo* r = NULL;
 	int socketID;
 	T addr(atoi((char*)_server_port),_ipaddress);
-	for( r = addr.getResult(); r != NULL; r = r->ai_next) 
+	for( r = addr.get_result(); r != NULL; r = r->ai_next) 
 	{
 		socketID = socket( r->ai_family, r->ai_socktype, r->ai_protocol );
 		if ( socketID == -1 ) {
-			throw SockError("Error on creating socket"); 
+			throw sock_error("Error on creating socket"); 
 			continue;
 		}
 		if (connect(socketID, r->ai_addr, r->ai_addrlen) == -1) {
 			close(socketID);
-			throw SockError("Error in connect"); 
+			throw sock_error("Error in connect"); 
 			continue;
 		}
 		break;
@@ -49,7 +49,7 @@ void ClientSocket<T>::buildClientSocket()
 
 	if (r == NULL) 
 	{
-		throw SockError("Error in address"); 
+		throw sock_error("Error in address"); 
 		socketID = -1;
 	}
 }
