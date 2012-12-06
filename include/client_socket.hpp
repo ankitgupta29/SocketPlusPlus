@@ -7,7 +7,7 @@ template <typename T>
 class client_socket: public Socket<T,typename std::enable_if<Convertible<T*, base_addr*>()>::type>
 {
     public:
-        client_socket(unsigned int server_port = 80,string ipaddress="localhost")
+        client_socket(unsigned int server_port = 80,string ipaddress="localhost"):_ipaddress(ipaddress), _server_port(server_port)
         {
             build_client_socket();
         }
@@ -20,7 +20,7 @@ class client_socket: public Socket<T,typename std::enable_if<Convertible<T*, bas
         ~client_socket() {}
 
     private:
-        T _ipaddress;
+        string _ipaddress;
         int _server_port;
         void build_client_socket();
 
@@ -30,17 +30,10 @@ template <typename T>
 void client_socket<T>::build_client_socket() 
 { 	
 	addrinfo* r = NULL;
-	int socketID;
-	T addr(atoi((char*)_server_port),_ipaddress);
-	for( r = addr.get_result(); r != NULL; r = r->ai_next) 
+	T addr(std::to_string(_server_port),_ipaddress);
+    for( r = addr.get_result(); r != NULL; r = r->ai_next) 
 	{
-		socketID = socket( r->ai_family, r->ai_socktype, r->ai_protocol );
-		if ( socketID == -1 ) {
-			throw sock_error("Error on creating socket"); 
-			continue;
-		}
-		if (connect(socketID, r->ai_addr, r->ai_addrlen) == -1) {
-			close(socketID);
+		if (connect(this->get_sockfd(), r->ai_addr, r->ai_addrlen) == -1) {
 			throw sock_error("Error in connect"); 
 			continue;
 		}
@@ -50,8 +43,8 @@ void client_socket<T>::build_client_socket()
 	if (r == NULL) 
 	{
 		throw sock_error("Error in address"); 
-		socketID = -1;
 	}
 }
 
+using client_sock_stream = client_socket<inet_stream_addr>;
 #endif

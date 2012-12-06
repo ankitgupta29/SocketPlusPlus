@@ -17,7 +17,7 @@ class Reactor
 {
     public:
         bool register_handler(Events ev, int fd, ev_handler *evH); 
-        bool deregister_handler(Events ev, int fd, ev_handler *evH); 
+        bool deregister_handler(Events ev, int fd); 
         bool register_timeout_handler(ev_handler *evH); 
         //run it in a different thread since it is blocking
         void Run();

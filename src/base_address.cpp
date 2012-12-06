@@ -1,6 +1,6 @@
-#include "base_address.hpp"
+#include "../include/base_address.hpp"
 
-void inet_stream_addr::buildAddress()
+void inet_stream_addr::build_address()
 {
 		// build address details
         int status = 0;
