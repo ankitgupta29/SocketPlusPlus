@@ -4,7 +4,6 @@
 #include<memory>
 #include "event_handler.hpp"
 
-
 Reactor* Reactor::get_instance() 
 {
     if (ins == NULL) {
@@ -117,4 +116,3 @@ void Reactor::Run()
 }
 
 Reactor* Reactor::ins = NULL;
-
